@@ -10,7 +10,7 @@ load_dotenv()
 
 def get_products():
     headers = {
-        'Authorization': f'Bearer {os.getenv("STRAPI_TOKEN")}'
+        'Authorization': f'Bearer {os.getenv('STRAPI_TOKEN')}'
     }
     
     try:
@@ -38,7 +38,7 @@ def get_cart_contents(cart_document_id: str) -> dict:
         f'&populate[cart_items][populate][product][populate][picture]=true'
     )
     headers = {
-        'Authorization': f'Bearer {os.getenv("STRAPI_TOKEN")}',
+        'Authorization': f'Bearer {os.getenv('STRAPI_TOKEN')}',
         'Content-Type': 'application/json'
     }
     try:
@@ -54,7 +54,7 @@ def get_cart_contents(cart_document_id: str) -> dict:
 def get_or_create_cart(chat_id: int):
     url = f'http://localhost:1337/api/carts?filters[chat_id][$eq]={chat_id}'
     headers = {
-        'Authorization': f'Bearer {os.getenv("STRAPI_TOKEN")}',
+        'Authorization': f'Bearer {os.getenv('STRAPI_TOKEN')}',
         'Content-Type': 'application/json'
     }
 
@@ -70,7 +70,7 @@ def get_or_create_cart(chat_id: int):
             paylaod = {'data': {'chat_id': str(chat_id)}}
             create_response = requests.post(create_url, json=paylaod, headers=headers)
             create_response.raise_for_status()
-            created_cart = create_response.json().get("data")
+            created_cart = create_response.json().get('data')
             return created_cart
 
     except Exception as e:
@@ -97,8 +97,8 @@ def get_product_image(product: dict):
 def add_product_to_cart(cart_document_id: str, product_document_id: str, quantity: int = 1):
     url = 'http://localhost:1337/api/cart-items'
     headers = {
-        'Authorization': f'Bearer {os.getenv("STRAPI_TOKEN")}',
-        "Content-Type": "application/json"
+        'Authorization': f'Bearer {os.getenv('STRAPI_TOKEN')}',
+        'Content-Type': 'application/json'
     }
     paylaod = {
         'data': {
@@ -117,28 +117,28 @@ def add_product_to_cart(cart_document_id: str, product_document_id: str, quantit
     if response.status_code == 200 or response.status_code == 201:
         return response.json()
     else:
-        print("Ошибка при добавлении:", response.status_code, response.text)
+        print('Ошибка при добавлении:', response.status_code, response.text)
         return None
     
     
 def clear_cart(cart_document_id: str) -> bool:
     headers = {
-        'Authorization': f'Bearer {os.getenv("STRAPI_TOKEN")}',
+        'Authorization': f'Bearer {os.getenv('STRAPI_TOKEN')}',
         'Content-Type': 'application/json'
     }
     try:
-        url = f"http://localhost:1337/api/cart-items?filters[cart][documentId][$eq]={cart_document_id}"
+        url = f'http://localhost:1337/api/cart-items?filters[cart][documentId][$eq]={cart_document_id}'
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         cart_items = response.json()['data']
         
         disconnect_ids = [{'documentId': item['documentId']} for item in cart_items]
 
-        put_url = f"http://localhost:1337/api/carts/{cart_document_id}"
+        put_url = f'http://localhost:1337/api/carts/{cart_document_id}'
         data = {
-            "data": {
-                "cart_items": {
-                    "disconnect": disconnect_ids
+            'data': {
+                'cart_items': {
+                    'disconnect': disconnect_ids
                 }
             }
         }
@@ -147,13 +147,13 @@ def clear_cart(cart_document_id: str) -> bool:
         
         return True
     except Exception as e:
-        print(f"Ошибка при очистке корзины: {e}")
+        print(f'Ошибка при очистке корзины: {e}')
         return False
     
 
 def create_client(email: str) -> dict:
     headers = {
-        'Authorization': f'Bearer {os.getenv("STRAPI_TOKEN")}',
+        'Authorization': f'Bearer {os.getenv('STRAPI_TOKEN')}',
         'Content-Type': 'application/json'
     }
     try:
@@ -166,7 +166,7 @@ def create_client(email: str) -> dict:
         if clients:
             return clients[0]
     except Exception as e:
-        print(f"Ошибка при проверке клиента: {e}")
+        print(f'Ошибка при проверке клиента: {e}')
 
     data = {
         'data': {
@@ -179,5 +179,5 @@ def create_client(email: str) -> dict:
         return response.json()['data']
         
     except Exception as e:
-        print(f"Ошибка при создании клиента: {e}")
+        print(f'Ошибка при создании клиента: {e}')
         return None

@@ -316,6 +316,7 @@ def main():
     dispatcher.add_handler(CallbackQueryHandler(handle_users_reply))
 
     set_menu_commands(updater.bot)
+    
     updater.start_polling()
     updater.idle()
     
