@@ -1,0 +1,53 @@
+# Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+*.whl
+
+# Виртуальное окружение
+.venv/
+venv/
+env/
+
+# Файлы конфигурации
+.env
+strapi/
+
+# Логи
+*.log
+bot.log
+
+# Strapi
+strapi/node_modules/
+strapi/.tmp/
+strapi/.cache/
+strapi/build/
+strapi/database.sqlite
+strapi/.env.example.local
+
+# SQLite база данных Strapi
+strapi/.tmp/data.db
+
+# Временные файлы и кэши
+*.cache
+*.bak
+*.swp
+*~
+
+# IDE и редакторы
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
