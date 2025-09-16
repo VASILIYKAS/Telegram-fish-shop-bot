@@ -11,8 +11,7 @@
 
 Бот написан на Python с использованием библиотеки `python-telegram-bot` (версия 13.15) и взаимодействует с API Strapi для получения данных о продуктах и управления заказами.
 
-## Оглавлени
-е
+## Оглавление
 
 - [Требования](#требования)
 - [Установка](#установка)
@@ -194,15 +193,11 @@ TG_BOT_TOKEN=your_telegram_bot_token
 
 2. **Запустите бота**:
    - Откройте новый терминал.
-   - Активируйте виртуальное окружение:
-     - Windows:
-       ```powershell
-       .venv\Scripts\Activate
-       ```
-     - Linux:
-       ```bash
-       source .venv/bin/activate
-       ```
+    - Активируйте виртуальное окружение:
+    ```bash
+    .venv\Scripts\activate    # Для Windows
+    source .venv/bin/activate # Для Linux
+    ```
    - Запустите бота:
      ```powershell
      python bot.py
