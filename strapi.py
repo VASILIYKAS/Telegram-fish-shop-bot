@@ -1,16 +1,10 @@
-import os
-
 import requests
-from dotenv import load_dotenv
 from io import BytesIO
 
 
-load_dotenv()
-
-
-def get_products():
+def get_products(strapi_token):
     headers = {
-        'Authorization': f'Bearer {os.getenv('STRAPI_TOKEN')}'
+        'Authorization': f'Bearer {strapi_token}'
     }
     
     try:
@@ -31,14 +25,14 @@ def get_products():
         return []
 
 
-def get_cart_contents(cart_document_id: str) -> dict:
+def get_cart_contents(cart_document_id: str, strapi_token) -> dict:
     url = (
         f'http://localhost:1337/api/carts'
         f'?filters[documentId][$eq]={cart_document_id}'
         f'&populate[cart_items][populate][product][populate][picture]=true'
     )
     headers = {
-        'Authorization': f'Bearer {os.getenv('STRAPI_TOKEN')}',
+        'Authorization': f'Bearer {strapi_token}',
         'Content-Type': 'application/json'
     }
     try:
@@ -51,10 +45,10 @@ def get_cart_contents(cart_document_id: str) -> dict:
         return None
     
     
-def get_or_create_cart(chat_id: int):
+def get_or_create_cart(chat_id: int, strapi_token):
     url = f'http://localhost:1337/api/carts?filters[chat_id][$eq]={chat_id}'
     headers = {
-        'Authorization': f'Bearer {os.getenv('STRAPI_TOKEN')}',
+        'Authorization': f'Bearer {strapi_token}',
         'Content-Type': 'application/json'
     }
 
@@ -94,10 +88,10 @@ def get_product_image(product: dict):
         return None
     
     
-def add_product_to_cart(cart_document_id: str, product_document_id: str, quantity: int = 1):
+def add_product_to_cart(cart_document_id: str, product_document_id: str, strapi_token, quantity: int = 1):
     url = 'http://localhost:1337/api/cart-items'
     headers = {
-        'Authorization': f'Bearer {os.getenv('STRAPI_TOKEN')}',
+        'Authorization': f'Bearer {strapi_token}',
         'Content-Type': 'application/json'
     }
     paylaod = {
@@ -121,9 +115,9 @@ def add_product_to_cart(cart_document_id: str, product_document_id: str, quantit
         return None
     
     
-def clear_cart(cart_document_id: str) -> bool:
+def clear_cart(cart_document_id: str, strapi_token) -> bool:
     headers = {
-        'Authorization': f'Bearer {os.getenv('STRAPI_TOKEN')}',
+        'Authorization': f'Bearer {strapi_token}',
         'Content-Type': 'application/json'
     }
     try:
@@ -151,9 +145,9 @@ def clear_cart(cart_document_id: str) -> bool:
         return False
     
 
-def create_client(email: str) -> dict:
+def create_client(email: str, strapi_token) -> dict:
     headers = {
-        'Authorization': f'Bearer {os.getenv('STRAPI_TOKEN')}',
+        'Authorization': f'Bearer {strapi_token}',
         'Content-Type': 'application/json'
     }
     try:

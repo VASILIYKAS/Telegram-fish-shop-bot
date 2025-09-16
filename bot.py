@@ -38,7 +38,8 @@ def set_menu_commands(bot):
     
 
 def show_menu(update: Update, context: CallbackContext) -> str:
-    products = get_products()
+    strapi_token = context.bot_data["STRAPI_TOKEN"]
+    products = get_products(strapi_token)
     keyboard = []
 
     for product in products:
@@ -64,10 +65,11 @@ def show_menu(update: Update, context: CallbackContext) -> str:
 
 
 def show_cart(update: Update, context: CallbackContext) -> str:
+    strapi_token = context.bot_data["STRAPI_TOKEN"]
     query = update.callback_query
     chat_id = query.message.chat_id if query else update.message.chat_id
 
-    cart = get_or_create_cart(chat_id)
+    cart = get_or_create_cart(chat_id, strapi_token)
     if not cart or 'documentId' not in cart:
         message = 'Корзина пуста или не удалось её получить.'
         if query:
@@ -78,7 +80,7 @@ def show_cart(update: Update, context: CallbackContext) -> str:
         return 'HANDLE_MENU'
 
     cart_document_id = cart['documentId']
-    cart_data = get_cart_contents(cart_document_id)
+    cart_data = get_cart_contents(cart_document_id, strapi_token)
     
     if not cart_data or not cart_data.get('cart_items'):
         message = 'Ваша корзина пуста.'
@@ -121,8 +123,9 @@ def show_cart(update: Update, context: CallbackContext) -> str:
 
 
 def show_product(update: Update, context: CallbackContext, product_document_id: str) -> str:
+    strapi_token = context.bot_data["STRAPI_TOKEN"]
     query = update.callback_query
-    products = get_products()
+    products = get_products(strapi_token)
     product = next((p for p in products if p['documentId'] == product_document_id), None)
     
     if not product:
@@ -150,6 +153,7 @@ def show_product(update: Update, context: CallbackContext, product_document_id: 
 
 
 def handle_callback(update: Update, context: CallbackContext, callback_data: str) -> str:
+    strapi_token = context.bot_data["STRAPI_TOKEN"]
     query = update.callback_query
     query.answer()
     chat_id = query.message.chat_id
@@ -162,7 +166,7 @@ def handle_callback(update: Update, context: CallbackContext, callback_data: str
         return show_cart(update, context)
     
     elif callback_data == 'CLEAR_CART':
-        cart = get_or_create_cart(chat_id)
+        cart = get_or_create_cart(chat_id, strapi_token)
         if not cart or 'documentId' not in cart:
             query.message.reply_text('Корзина не найдена.')
             logger.error(f'Ошибка: корзина не найдена для chat_id={chat_id}')
@@ -170,7 +174,7 @@ def handle_callback(update: Update, context: CallbackContext, callback_data: str
 
         cart_document_id = cart['documentId']
         logger.info(f'Очистка корзины: cart_document_id={cart_document_id}')
-        if clear_cart(cart_document_id):
+        if clear_cart(cart_document_id, strapi_token):
             query.message.reply_text('Корзина очищена.')
             query.message.delete()
             return show_menu(update, context)
@@ -185,7 +189,7 @@ def handle_callback(update: Update, context: CallbackContext, callback_data: str
     
     elif callback_data.startswith('ADD_TO_CART_'):
         product_document_id = callback_data.replace('ADD_TO_CART_', '')
-        cart = get_or_create_cart(chat_id)
+        cart = get_or_create_cart(chat_id, strapi_token)
         if not cart or 'documentId' not in cart:
             query.answer('Не удалось получить или создать корзину')
             logger.error(f'Ошибка: корзина не создана или отсутствует documentId, cart={cart}')
@@ -194,7 +198,7 @@ def handle_callback(update: Update, context: CallbackContext, callback_data: str
         cart_document_id = cart['documentId']
         logger.info(f'Добавляем товар: cart_document_id={cart_document_id}, product_document_id={product_document_id}, quantity=1')
         
-        add_product = add_product_to_cart(cart_document_id, product_document_id, quantity=1)
+        add_product = add_product_to_cart(cart_document_id, product_document_id, strapi_token, quantity=1)
         
         if add_product:
             query.message.reply_text('Товар добавлен в корзину')
@@ -224,13 +228,14 @@ def handle_description(update: Update, context: CallbackContext) -> str:
 
 
 def handle_email(update: Update, context: CallbackContext) -> str:
+    strapi_token = context.bot_data["STRAPI_TOKEN"]
     email = update.message.text.strip()
 
     if '@' not in email or '.' not in email:
         update.message.reply_text('Пожалуйста, укажите корректный email.')
         return 'WAITING_EMAIL'
 
-    client = create_client(email)
+    client = create_client(email, strapi_token)
     if not client or 'documentId' not in client:
         update.message.reply_text('Ошибка при регистрации клиента.')
         logger.error(f'Не удалось создать клиента для email={email}')
@@ -302,15 +307,18 @@ def main():
     global logger
     logger = logging.getLogger(__name__)
     
-    load_dotenv()
-    
     global _database
     _database = None
-
+    
+    load_dotenv()
     token = os.getenv('TG_BOT_TOKEN')
+    strapi_token = os.getenv("STRAPI_TOKEN")
+    
     updater = Updater(token)
     dispatcher = updater.dispatcher
 
+    dispatcher.bot_data["STRAPI_TOKEN"] = strapi_token
+    
     dispatcher.add_handler(CommandHandler('start', handle_users_reply))
     dispatcher.add_handler(MessageHandler(Filters.text, handle_users_reply))
     dispatcher.add_handler(CallbackQueryHandler(handle_users_reply))
