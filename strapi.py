@@ -9,8 +9,9 @@ def get_products(strapi_token):
     
     try:
         response = requests.get(
-            'http://localhost:1337/api/products?populate=*',
+            'http://localhost:1337/api/products',
             headers=headers,
+            params={'populate': '*'},
             timeout=10
         )
         if response.status_code == 200:
@@ -26,17 +27,17 @@ def get_products(strapi_token):
 
 
 def get_cart_contents(cart_document_id: str, strapi_token) -> dict:
-    url = (
-        f'http://localhost:1337/api/carts'
-        f'?filters[documentId][$eq]={cart_document_id}'
-        f'&populate[cart_items][populate][product][populate][picture]=true'
-    )
+    url = 'http://localhost:1337/api/carts'
     headers = {
         'Authorization': f'Bearer {strapi_token}',
         'Content-Type': 'application/json'
     }
+    params = {
+        'filters[documentId][$eq]': cart_document_id,
+        'populate[cart_items][populate][product][populate][picture]': 'true'
+    }
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, params=params)
         response.raise_for_status()
         carts = response.json()['data']
         return carts[0] if carts else None
@@ -46,14 +47,15 @@ def get_cart_contents(cart_document_id: str, strapi_token) -> dict:
     
     
 def get_or_create_cart(chat_id: int, strapi_token):
-    url = f'http://localhost:1337/api/carts?filters[chat_id][$eq]={chat_id}'
+    url = f'http://localhost:1337/api/carts'
     headers = {
         'Authorization': f'Bearer {strapi_token}',
         'Content-Type': 'application/json'
     }
+    params = {'filters[chat_id][$eq]': chat_id}
 
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, params=params)
         response.raise_for_status()
         carts = response.json().get('data', [])
 
@@ -77,6 +79,7 @@ def get_product_image(product: dict):
         return None
     
     img_url = 'http://localhost:1337' + product['picture'][0]['url']
+    print(product['picture'][0]['url'])
     try:
         response = requests.get(img_url)
         response.raise_for_status()
@@ -116,13 +119,17 @@ def add_product_to_cart(cart_document_id: str, product_document_id: str, strapi_
     
     
 def clear_cart(cart_document_id: str, strapi_token) -> bool:
+    url = 'http://localhost:1337/api/cart-items'
+
     headers = {
         'Authorization': f'Bearer {strapi_token}',
         'Content-Type': 'application/json'
     }
+    params = {
+        'filters[cart][documentId][$eq]': cart_document_id
+    }
     try:
-        url = f'http://localhost:1337/api/cart-items?filters[cart][documentId][$eq]={cart_document_id}'
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, params=params)
         response.raise_for_status()
         cart_items = response.json()['data']
         
@@ -146,15 +153,14 @@ def clear_cart(cart_document_id: str, strapi_token) -> bool:
     
 
 def create_client(email: str, strapi_token) -> dict:
+    url = 'http://localhost:1337/api/clients'
     headers = {
         'Authorization': f'Bearer {strapi_token}',
         'Content-Type': 'application/json'
     }
+    params = {'filters[email][$eq]': email}
     try:
-        response = requests.get(
-            f'http://localhost:1337/api/clients?filters[email][$eq]={email}',
-            headers=headers
-        )
+        response = requests.get(url, headers=headers, params=params)
         response.raise_for_status()
         clients = response.json()['data']
         if clients:
