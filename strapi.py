@@ -98,7 +98,7 @@ def add_product_to_cart(cart_document_id: str, product_document_id: str, strapi_
         'Authorization': f'Bearer {strapi_token}',
         'Content-Type': 'application/json'
     }
-    paylaod = {
+    payload = {
         'data': {
             'quantity': quantity,
             'cart': {
@@ -110,7 +110,7 @@ def add_product_to_cart(cart_document_id: str, product_document_id: str, strapi_
         }
     }
     
-    response = requests.post(url, headers=headers, json=paylaod)
+    response = requests.post(url, headers=headers, json=payload)
     
     if response.status_code == 200 or response.status_code == 201:
         return response.json()
@@ -137,14 +137,14 @@ def clear_cart(cart_document_id: str, strapi_token, base_url) -> bool:
         disconnect_ids = [{'documentId': item['documentId']} for item in cart_items]
 
         put_url = f'{base_url}api/carts/{cart_document_id}'
-        data = {
+        payload = {
             'data': {
                 'cart_items': {
                     'disconnect': disconnect_ids
                 }
             }
         }
-        put_response = requests.put(put_url, json=data, headers=headers)
+        put_response = requests.put(put_url, json=payload, headers=headers)
         put_response.raise_for_status()
         
         return True
@@ -169,13 +169,13 @@ def create_client(email: str, strapi_token, base_url) -> dict:
     except Exception as e:
         print(f'Ошибка при проверке клиента: {e}')
 
-    data = {
+    payload = {
         'data': {
             'email': email
         }
     }
     try:
-        response = requests.post(f'{base_url}api/clients', json=data, headers=headers)
+        response = requests.post(f'{base_url}api/clients', json=payload, headers=headers)
         response.raise_for_status()
         return response.json()['data']
         
