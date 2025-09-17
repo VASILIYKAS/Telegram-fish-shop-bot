@@ -127,6 +127,11 @@ TG_BOT_TOKEN=your_telegram_bot_token
     - В меню слева нажмите "Databases" и выбирете свою бд.
     - На вкладке "Security" будет ваш пароль "Default user password"
 
+- `STRAPI_URL` - адрес Strapi API, по умолчанию стоит `http://localhost:1337/`. Можно переопределить адрес при запуске с помощью аргумента `--strapi-url` например:
+```powershell
+python bot.py --strapi-url http://testserver.com:1337/
+```
+
 
 ## Модели в Strapi
 
