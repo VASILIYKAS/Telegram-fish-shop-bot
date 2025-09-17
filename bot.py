@@ -41,7 +41,12 @@ def set_menu_commands(bot):
 def show_menu(update: Update, context: CallbackContext) -> str:
     strapi_token = context.bot_data["STRAPI_TOKEN"]
     strapi_url = context.bot_data["STRAPI_URL"]
-    products = get_products(strapi_token, strapi_url)
+    try:
+        products = get_products(strapi_token, strapi_url)
+    except Exception as e:
+        logger.error(f'Ошибка при получении продуктов: {e}')
+        products = []
+    
     keyboard = []
 
     for product in products:
@@ -71,8 +76,11 @@ def show_cart(update: Update, context: CallbackContext) -> str:
     strapi_url = context.bot_data["STRAPI_URL"]
     query = update.callback_query
     chat_id = query.message.chat_id if query else update.message.chat_id
-
-    cart = get_or_create_cart(chat_id, strapi_token, strapi_url)
+    try:
+        cart = get_or_create_cart(chat_id, strapi_token, strapi_url)
+    except Exception as e:
+        logger.error(f'Ошибка при получении корзины: {e}')
+        
     if not cart or 'documentId' not in cart:
         message = 'Корзина пуста или не удалось её получить.'
         if query:
@@ -83,8 +91,12 @@ def show_cart(update: Update, context: CallbackContext) -> str:
         return 'HANDLE_MENU'
 
     cart_document_id = cart['documentId']
-    cart_data = get_cart_contents(cart_document_id, strapi_token, strapi_url)
     
+    try:
+        cart_data = get_cart_contents(cart_document_id, strapi_token, strapi_url)
+    except Exception as e:
+        logger.error(f'Ошибка при получении содержимого корзины: {e}')
+        
     if not cart_data or not cart_data.get('cart_items'):
         message = 'Ваша корзина пуста.'
         if query:
@@ -129,7 +141,12 @@ def show_product(update: Update, context: CallbackContext, product_document_id: 
     strapi_token = context.bot_data["STRAPI_TOKEN"]
     strapi_url = context.bot_data["STRAPI_URL"]
     query = update.callback_query
-    products = get_products(strapi_token, strapi_url)
+    
+    try:
+        products = get_products(strapi_token, strapi_url)
+    except Exception as e:
+        logger.error(f'Ошибка при получении продуктов: {e}')
+        
     product = next((p for p in products if p['documentId'] == product_document_id), None)
     
     if not product:
@@ -146,7 +163,11 @@ def show_product(update: Update, context: CallbackContext, product_document_id: 
                 [InlineKeyboardButton('Добавить в корзину', callback_data=f'ADD_TO_CART_{product_document_id}')]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    image_bytes = get_product_image(product, strapi_url)
+    try:
+        image_bytes = get_product_image(product, strapi_url)
+    except Exception as e:
+        logger.error(f'Ошибка при получении изображения: {e}')
+        
     if image_bytes:
         media = InputMediaPhoto(media=image_bytes, caption=text, parse_mode=ParseMode.MARKDOWN)
         query.message.edit_media(media=media, reply_markup=reply_markup)
@@ -171,7 +192,11 @@ def handle_callback(update: Update, context: CallbackContext, callback_data: str
         return show_cart(update, context)
     
     elif callback_data == 'CLEAR_CART':
-        cart = get_or_create_cart(chat_id, strapi_token, strapi_url)
+        try:
+            cart = get_or_create_cart(chat_id, strapi_token, strapi_url)
+        except Exception as e:
+            logger.error(f'Ошибка при получении корзины: {e}')
+            
         if not cart or 'documentId' not in cart:
             query.message.reply_text('Корзина не найдена.')
             logger.error(f'Ошибка: корзина не найдена для chat_id={chat_id}')
@@ -194,7 +219,11 @@ def handle_callback(update: Update, context: CallbackContext, callback_data: str
     
     elif callback_data.startswith('ADD_TO_CART_'):
         product_document_id = callback_data.replace('ADD_TO_CART_', '')
-        cart = get_or_create_cart(chat_id, strapi_token, strapi_url)
+        try:
+            cart = get_or_create_cart(chat_id, strapi_token, strapi_url)
+        except Exception as e:
+            logger.error(f'Ошибка при получении корзины: {e}')
+            
         if not cart or 'documentId' not in cart:
             query.answer('Не удалось получить или создать корзину')
             logger.error(f'Ошибка: корзина не создана или отсутствует documentId, cart={cart}')
@@ -202,9 +231,11 @@ def handle_callback(update: Update, context: CallbackContext, callback_data: str
         
         cart_document_id = cart['documentId']
         logger.info(f'Добавляем товар: cart_document_id={cart_document_id}, product_document_id={product_document_id}, quantity=1')
-        
-        add_product = add_product_to_cart(cart_document_id, product_document_id, strapi_token, strapi_url, quantity=1)
-        
+        try:
+            add_product = add_product_to_cart(cart_document_id, product_document_id, strapi_token, strapi_url, quantity=1)
+        except Exception as e:
+            logger.error(f'Ошибка при добавлении товара: {e}')
+            
         if add_product:
             query.message.reply_text('Товар добавлен в корзину')
             return show_menu(update, context)
@@ -234,13 +265,17 @@ def handle_description(update: Update, context: CallbackContext) -> str:
 
 def handle_email(update: Update, context: CallbackContext) -> str:
     strapi_token = context.bot_data["STRAPI_TOKEN"]
+    strapi_url = context.bot_data["STRAPI_URL"]
     email = update.message.text.strip()
 
     if '@' not in email or '.' not in email:
         update.message.reply_text('Пожалуйста, укажите корректный email.')
         return 'WAITING_EMAIL'
-
-    client = create_client(email, strapi_token)
+    try:
+        client = create_client(email, strapi_token, strapi_url)
+    except Exception as e:
+        logger.error(f'Ошибка при создании клиента: {e}')
+        
     if not client or 'documentId' not in client:
         update.message.reply_text('Ошибка при регистрации клиента.')
         logger.error(f'Не удалось создать клиента для email={email}')
@@ -327,7 +362,7 @@ def main():
     args = parser.parse_args()
     
     strapi_url = args.strapi_url
-    print(f"Используемая ссылка Strapi: {strapi_url}")
+    logger.info(f'Используемая ссылка Strapi: {strapi_url}')
     
     token = os.getenv('TG_BOT_TOKEN')
     strapi_token = os.getenv('STRAPI_TOKEN')
