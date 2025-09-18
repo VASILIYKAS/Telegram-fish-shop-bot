@@ -336,9 +336,9 @@ def handle_users_reply(update, context):
 def get_database_connection():
     global _database
     if _database is None:
-        database_password = os.getenv('REDIS_DB_PASSWORD')
-        database_host = os.getenv('REDIS_DB_HOST')
-        database_port = os.getenv('REDIS_DB_PORT')
+        database_password = os.environ['REDIS_DB_PASSWORD']
+        database_host = os.environ['REDIS_DB_HOST']
+        database_port = os.environ['REDIS_DB_PORT']
         _database = redis.Redis(host=database_host, port=database_port, password=database_password)
     return _database
 
@@ -366,8 +366,8 @@ def main():
     strapi_url = args.strapi_url
     logger.info(f'Используемая ссылка Strapi: {strapi_url}')
     
-    token = os.getenv('TG_BOT_TOKEN')
-    strapi_token = os.getenv('STRAPI_TOKEN')
+    token = os.environ['TG_BOT_TOKEN']
+    strapi_token = os.environ['STRAPI_TOKEN']
     
     updater = Updater(token)
     dispatcher = updater.dispatcher
