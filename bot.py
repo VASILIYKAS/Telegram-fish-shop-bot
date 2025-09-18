@@ -31,6 +31,9 @@ from strapi import (
 )
 
 
+logger = logging.getLogger(__name__)
+
+
 def set_menu_commands(bot):
     commands = [
         BotCommand('start', 'Запустить бота'),
@@ -342,10 +345,9 @@ def get_database_connection():
 
 def main():
     logging.basicConfig(
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
+        level=logging.INFO
     )
-    global logger
-    logger = logging.getLogger(__name__)
     
     global _database
     _database = None
