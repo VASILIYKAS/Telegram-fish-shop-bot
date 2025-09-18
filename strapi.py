@@ -14,8 +14,9 @@ def get_products(strapi_token, base_url):
         params={'populate': '*'},
         timeout=10
     )
-    if response.status_code == 200:
-        products = response.json()['data']
+
+    if response.ok:
+        products = response.json().get('data', [])
         return products
     else:
         return []
