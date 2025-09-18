@@ -33,6 +33,8 @@ from strapi import (
 
 logger = logging.getLogger(__name__)
 
+_database = None
+
 
 def set_menu_commands(bot):
     commands = [
@@ -348,9 +350,6 @@ def main():
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
         level=logging.INFO
     )
-    
-    global _database
-    _database = None
     
     load_dotenv()
     
